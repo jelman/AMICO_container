@@ -1,35 +1,23 @@
-From ubuntu:yakkety
-Label maintainer "Thomas.Wright"
+From python:3
+
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-    python \
-    python-pip \
-    git \
-    python-dipy \
-    curl \
-    wget \
-    vim-tiny \
     libblas-dev \
     liblapack-dev \
     software-properties-common \
-    python-software-properties \
-    build-essential \
-    python-dev \
-    python-setuptools
+    build-essential 
 
 
-  # configure git
-  RUN git config --global url."https://".insteadOf git://
 
   WORKDIR /opt
-  RUN wget http://spams-devel.gforge.inria.fr/hitcounter2.php?file=file/36740/spams-python-v2.6-2017-04-18.tar.gz -O spams-python.tar.gz
-  RUN tar -xzf spams-python.tar.gz
-  RUN rm spams-python.tar.gz
-
-  WORKDIR /opt/spams-python
-  RUN python setup.py install
-
+  
+  COPY . .
+  
+  # Install require AMICO and requirements
+  RUN pip install --no-cache-dir -r requirements.txt
+  RUN pip install dmri-amico
+  
   # install Oracle JAVA
   WORKDIR /opt
   #RUN add-apt-repository ppa:webupd8team/java
@@ -44,11 +32,8 @@ RUN apt-get update \
   WORKDIR /opt/camino
   RUN make
   ENV PATH=${PATH}:/opt/camino/bin
-
-  # install Amico
+  
   WORKDIR /opt
-  RUN git clone https://github.com/daducci/AMICO.git
-  WORKDIR /opt/AMICO
-  RUN pip install .
+ 
 
-  RUN rm -rf /var/lib/apt/lists
+  ENTRYPOINT ["python", "run_amico.py"]

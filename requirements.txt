@@ -1,0 +1,7 @@
+numpy
+setuptools
+scipy
+spams
+nibabel
+dipy
+

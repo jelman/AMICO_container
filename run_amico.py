@@ -6,6 +6,11 @@ Run the default AMICO process
 import argparse
 import os
 
+#https://github.com/daducci/AMICO/issues/56
+nb_threads = 1
+os.environ["OMP_NUM_THREADS"] = str(nb_threads)  # Has impact on a supercomputer
+os.environ["MKL_NUM_THREADS"] = str(nb_threads)  # Has impact both on supercomputer and personal computer if you are using MKL
+
 import amico
 
 BASEDIR = '/input'
@@ -56,6 +61,10 @@ def main():
 
     ae.set_model("NODDI")
     ae.generate_kernels()
+    
+    #https://github.com/daducci/AMICO/issues/67
+    ae.CONFIG['solver_params']['numThreads'] = nb_threads
+    
     ae.load_kernels()
     ae.fit()
     ae.save_results()

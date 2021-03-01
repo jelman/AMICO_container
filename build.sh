@@ -1,7 +1,7 @@
 #!/bin/bash
 # Rebuild the docker and singularity containers
 
-DockerTag=maladmin/amico
+DockerTag=jaelman/amico
 SingularityImage=amico.img
 SingularityBootstrapFile=singularity.def
 
