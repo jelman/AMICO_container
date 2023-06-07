@@ -5,12 +5,6 @@ Run the default AMICO process
 
 import argparse
 import os
-
-#https://github.com/daducci/AMICO/issues/56
-nb_threads = 1
-os.environ["OMP_NUM_THREADS"] = str(nb_threads)  # Has impact on a supercomputer
-os.environ["MKL_NUM_THREADS"] = str(nb_threads)  # Has impact both on supercomputer and personal computer if you are using MKL
-
 import amico
 
 BASEDIR = '/input'
@@ -44,7 +38,10 @@ def main():
     mask_file = os.path.join(subject_folder, args.mask_file)
     if not os.path.isfile(mask_file):
         raise RuntimeError('Mask file:{} not found'.format(mask_file))
-
+    
+    dPar = args.parallel_diff
+    nb_threads = args.threads
+    
     # start processing here
     amico.core.setup()
     ae = amico.Evaluation(study_folder, subject_folder)
@@ -60,14 +57,20 @@ def main():
                  mask_filename=mask_file)
 
     ae.set_model("NODDI")
+    
+    if dPar:
+        ae.model.dPar = dPar
     ae.generate_kernels()
     
     #https://github.com/daducci/AMICO/issues/67
-    ae.CONFIG['solver_params']['numThreads'] = nb_threads
+    ae.CONFIG['parallel_jobs'] = nb_threads
     
     ae.load_kernels()
     ae.fit()
-    ae.save_results()
+    if dPar:
+        ae.save_results( path_suffix=f'_dPar={dPar:.2e}' )
+    else:
+        ae.save_results()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -99,8 +102,15 @@ if __name__ == '__main__':
                         help="Name of the mask file."
                         " Interpreted relative to subject folder",
                         default="dwi_brain_mask.nii.gz")
+    parser.add_argument("--parallel_diff", nargs='?',
+                        help="Set alternative intrinsic parallel diffusivity value."
+                        "  NODDI default is 1.7e-3",
+                        default=None)
     parser.add_argument("--delimiter",
                         help="Delimiter to be used for bvals and bvecs files")
-
+    parser.add_argument("--threads", nargs='?', 
+                        help="Number of threads to use for parallel processing",
+                        default=1)
+    
     args = parser.parse_args()
     main()
