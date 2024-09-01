@@ -41,7 +41,10 @@ def main():
     
     dPar = args.parallel_diff
     nb_threads = args.threads
-    
+    rmse = args.compute_rmse
+    nrmse = args.compute_nrmse
+    save_modulated = args.save_modulated
+
     # start processing here
     amico.core.setup()
     ae = amico.Evaluation(study_folder, subject_folder)
@@ -56,15 +59,25 @@ def main():
                  scheme_filename=scheme_file,
                  mask_filename=mask_file)
 
+    # Set model to NODDI
     ae.set_model("NODDI")
     
+    # Set parallel diffusivity
     if dPar:
-        ae.model.dPar = dPar
+        ae.model.set(dPar)
+
+    # Generate kernels
     ae.generate_kernels()
     
-    #https://github.com/daducci/AMICO/issues/67
-    ae.CONFIG['parallel_jobs'] = nb_threads
+    # Set number of threads
+    ae.set_config('nthreads', nb_threads)
     
+    # Set configuration options
+    ae.set_config('doComputeRMSE', rmse)
+    ae.set_config('doComputeNRMSE', nrmse)
+    ae.set_config('doSaveModulatedMaps', save_modulated)
+
+    # Load kernels and fit the model
     ae.load_kernels()
     ae.fit()
     if dPar:
@@ -111,6 +124,14 @@ if __name__ == '__main__':
     parser.add_argument("--threads", nargs='?', 
                         help="Number of threads to use for parallel processing",
                         default=1)
-    
+    parser.add_argument("--compute_rmse", action='store_true', 
+                        help="Compute the root mean square error between the predicted and the measured signal.", 
+                        default=False)
+    parser.add_argument("--compute_nrmse", action='store_true', 
+                    help="Compute the normalized root mean square error between the predicted and the measured signal.", 
+                    default=False)
+    parser.add_argument("--save_modulated", action='store_true', 
+                    help="Save the modulated NDI and ODI maps for tissue-weighted means described in Parker, Christopher S. et al. 2021.", 
+                    default=False)
     args = parser.parse_args()
     main()

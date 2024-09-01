@@ -10,6 +10,7 @@ docker push "$DockerTag"
 
 if [ ! -f "$SingularityImage" ]; then
   sudo singularity create --size 2000 "$SingularityImage"
+  sudo singularity bootstrap "$SingularityImage" "$SingularityBootstrapFile"
+
 fi
 
-sudo singularity bootstrap "$SingularityImage" "$SingularityBootstrapFile"
