@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: maladmin/amico:latest
+From: jaelman/amico:latest
 
 %setup
   cp run_amico.py ${SINGULARITY_ROOTFS}/opt/run_amico.py
